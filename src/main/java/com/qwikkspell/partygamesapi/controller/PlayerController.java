@@ -21,7 +21,7 @@ public class PlayerController {
         this.playerService = playerService;
     }
 
-    @PostMapping(consumes = "application/json", produces = "application/json")
+    @PostMapping
     public ResponseEntity<PlayerDTO> createPlayer(@Valid @RequestBody PlayerDTO playerDTO) {
         Player player = convertToEntity(playerDTO);
         Player createdPlayer = playerService.createPlayer(player);
