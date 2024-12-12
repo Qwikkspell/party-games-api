@@ -20,14 +20,13 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
-        // Create the custom API key filter
         ApiKeyAuthenticationFilter apiKeyFilter = new ApiKeyAuthenticationFilter(apiKeyService, authenticationManager);
 
-        // Configure the filter chain
-        http.csrf().disable()
-                .authorizeHttpRequests()
-                .anyRequest().authenticated()
-                .and()
+        http
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().authenticated()
+                )
                 .addFilterBefore(apiKeyFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
