@@ -16,12 +16,10 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/games")
 public class GameController {
     private final GameService gameService;
-    private final GameRepository gameRepository;
 
     @Autowired
-    public GameController(GameService gameService, GameRepository gameRepository) {
+    public GameController(GameService gameService) {
         this.gameService = gameService;
-        this.gameRepository = gameRepository;
     }
 
     @PostMapping

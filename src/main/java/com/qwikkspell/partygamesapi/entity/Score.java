@@ -31,7 +31,7 @@ public class Score {
     private Player player;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "game_name", nullable = false)
+    @JoinColumn(name = "game_name", referencedColumnName = "game_name", nullable = false)
     private Game game;
 
 
