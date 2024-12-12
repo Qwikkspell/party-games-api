@@ -3,38 +3,37 @@ package com.qwikkspell.partygamesapi.security;
 import com.qwikkspell.partygamesapi.service.ApiKeyService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
+import org.springframework.web.filter.GenericFilterBean;
 
 import java.io.IOException;
 
-public class ApiKeyAuthenticationFilter extends AbstractPreAuthenticatedProcessingFilter {
+public class ApiKeyAuthenticationFilter extends GenericFilterBean {
     private final ApiKeyService apiKeyService;
 
-    public ApiKeyAuthenticationFilter(ApiKeyService apiKeyService, AuthenticationManager authenticationManager) {
+    public ApiKeyAuthenticationFilter(ApiKeyService apiKeyService) {
         this.apiKeyService = apiKeyService;
-        setAuthenticationManager(authenticationManager);
-
-        setCheckForPrincipalChanges(false);
     }
 
     @Override
-    protected Object getPreAuthenticatedPrincipal(final HttpServletRequest request) {
-        String apiKey = request.getHeader("API-Key");
-        if (apiKey != null && apiKeyService.validateApiKey(apiKey, request.getMethod())) {
-            System.out.println("API Key is valid: " + apiKey);
-            return apiKey;
+    public void doFilter(jakarta.servlet.ServletRequest request, jakarta.servlet.ServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+
+        String apiKey = httpRequest.getHeader("API-Key");
+        String method = httpRequest.getMethod();
+
+        if (apiKey == null || !apiKeyService.validateApiKey(apiKey, method)) {
+            throw new BadCredentialsException("Invalid API Key");
         }
-        System.out.println("API Key is invalid or missing");
-        return null;
-    }
 
-    @Override
-    protected Object getPreAuthenticatedCredentials(final HttpServletRequest request) {
-        return "";
+        ApiKeyAuthenticationToken authToken = new ApiKeyAuthenticationToken(apiKey, null);
+        SecurityContextHolder.getContext().setAuthentication(authToken);
+
+        chain.doFilter((ServletRequest) request, (ServletResponse) response);
     }
 }
